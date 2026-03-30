@@ -1,0 +1,12 @@
+services:
+  tg_archive:
+    build: .
+    image: tg_archive
+    container_name: tg_archive
+    tty: true
+    stdin_open: true
+    env_file:
+      - .env
+    volumes:
+      - ./downloads:/app/downloads
+      - ./account.session:/app/account.session

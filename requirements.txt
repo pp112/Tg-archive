@@ -1,0 +1,4 @@
+Pyrogram==2.0.106
+python-dotenv==1.2.2
+rich==14.3.3
+tgcrypto==1.2.5

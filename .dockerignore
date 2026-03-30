@@ -1,0 +1,8 @@
+.venv/
+.git/
+__pycache__/
+downloads/
+.gitignore
+account.session*
+.env.example
+.env
