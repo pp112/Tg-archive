@@ -1,5 +1,5 @@
 import os
-import tgcrypto
+
 from pyrogram import Client
 from dotenv import load_dotenv
 
@@ -22,39 +22,36 @@ PROXY = {
 DIALOG_TARGET = os.getenv("DIALOG_TARGET")
 FROM_COMMENTS = os.getenv("FROM_COMMENTS").lower() == "true"
 
-app = Client("account", api_id=API_ID, api_hash=API_HASH, proxy=PROXY) 
 
-
-def get_target_chat_id(dialog_name: str):
-    for dialog in app.get_dialogs():
+async def get_target_chat_id(app, dialog_name: str):
+    async for dialog in app.get_dialogs():
         chat_name = dialog.chat.first_name or dialog.chat.title
         if chat_name == dialog_name:
             chat_id_target = dialog.chat.id
             return chat_id_target
-    else:
-        raise ValueError("Чат не найден")
+    raise ValueError("Чат не найден")
 
-def download_media_chat(chat_id):
-    chat_name = app.get_chat(chat_id).title
+async def download_media_chat(app, chat_id):
+    chat_name = await app.get_chat(chat_id).title
 
-    messages = app.get_chat_history(chat_id)
-
-    total = app.get_chat_history_count(chat_id)
+    total = await app.get_chat_history_count(chat_id)
     progress = get_progress()
 
     with progress:
         task = progress.add_task("Скачиваем медиафайлы", total=total)
 
-        for i, message in enumerate(messages, start=1):
+        i = 0
+        async for message in app.get_chat_history(chat_id):
+            i += 1
             file_name = get_media_filename(message, i)
             if file_name is None:
                 continue
 
-            app.download_media(message, file_name=f"./downloads/{chat_name}/{i}.jpg")
+            await app.download_media(message, file_name=f"./downloads/{chat_name}/{i}.jpg")
             
             progress.advance(task)
 
-def download_media_comments(chat_id, messages_id: list):
+async def download_media_comments(app, chat_id, messages_id: list):
     progress = get_progress()
 
     with progress:
@@ -63,16 +60,17 @@ def download_media_comments(chat_id, messages_id: list):
         total_replies = None
 
         for message_id in messages_id:
-            message_text = safe_filename(app.get_messages(chat_id, message_id).text)
-            date = app.get_messages(chat_id, message_id).date.strftime("%d.%m.%y")
+            msg = await app.get_messages(chat_id, message_id)
+            date = msg.date.strftime("%d.%m.%y")
+            message_text = safe_filename((await app.get_messages(chat_id, message_id)).text)
             folder_name = f"{message_text}_{date}"
             
-            replies = app.get_discussion_replies(chat_id, message_id)
-
-            total_replies = app.get_discussion_replies_count(chat_id, message_id)
+            total_replies = await app.get_discussion_replies_count(chat_id, message_id)
             progress.update(task1, advance=1, description=message_text)
             
-            for i, reply in enumerate(replies, start=1):
+            i = 0
+            async for reply in app.get_discussion_replies(chat_id, message_id):
+                i += 1
                 file_name = get_media_filename(reply, i)
                 if file_name is None:
                     continue
@@ -81,27 +79,30 @@ def download_media_comments(chat_id, messages_id: list):
             
                 progress.update(task2, advance=1, description=file_name, total=total_replies)
 
-                app.download_media(reply, file_name=file_path)
-                
+                await app.download_media(reply, file_name=file_path)
+
             progress.reset(task2)
 
-def process_comments(chat_id):
+async def process_comments(app, chat_id):
     with console.status(f'[green]Собираем сообщения...[/green]'):
-        messages_id = [message.id for message in app.get_chat_history(chat_id)]
+        messages_id = [message.id async for message in app.get_chat_history(chat_id)]
+    
     complete_msg("Сообщения собраны")
-    download_media_comments(chat_id, messages_id)
+    await download_media_comments(app, chat_id, messages_id)
 
 
-def start_downloader():
-    with app:
+async def start_downloader():
+    app = Client("account", api_id=API_ID, api_hash=API_HASH, proxy=PROXY) 
+
+    async with app:
         with console.status(f'[green]Ищем чат:[/green] [cyan]{DIALOG_TARGET}[/cyan]'):
-            chat_id = get_target_chat_id(DIALOG_TARGET)
+            chat_id = await get_target_chat_id(app, DIALOG_TARGET)
         complete_msg("Чат найден")
 
         if FROM_COMMENTS:
-            process_comments(chat_id)
+            await process_comments(app, chat_id)
         else:
-            download_media_chat(chat_id)
+            await download_media_chat(app, chat_id)
 
         print()
         complete_msg("Все медиафайлы успешно скачаны!")
