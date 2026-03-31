@@ -61,19 +61,36 @@ class Downloader:
                     console.print(f"[yellow]FloodWait: ждём {e.value} сек[/yellow]")
                     await asyncio.sleep(e.value)
 
+    async def download_media_list(
+        self,
+        messages: list[Message],
+        folder: str,
+        progress: Progress,
+        task: TaskID
+    ):
+        """Скачивает медиафайлы из списка сообщений"""
+        tasks = []
+
+        for i, message in enumerate(messages, 1):
+            file_name = get_media_filename(message, i)
+
+            if file_name:
+                path = f"./downloads/{folder}/{file_name}"
+
+                tasks.append(self.safe_download(message, path, progress, task))
+
+        await asyncio.gather(*tasks)
+
     async def download_media_chat(self, chat_id):
         """Скачивание медиафайлов из обычного чата"""
         chat = await self.app.get_chat(chat_id)
         chat_name = safe_path_text(chat.title or chat.first_name)
 
         media_messages = []
-        i = 0
 
         async for message in self.app.get_chat_history(chat_id):
-            i += 1
-            file_name = get_media_filename(message, i)
-            if file_name:
-                media_messages.append((message, file_name))
+            if message.media:
+                media_messages.append(message)
 
         total_files = len(media_messages)
 
@@ -83,14 +100,7 @@ class Downloader:
             task_text = f"Скачиваем медиафайлы из '{self.dialog_target}'"
             task = progress.add_task(task_text, total=total_files)
 
-            tasks = []
-
-            for message, file_name in media_messages:
-                path = f"./downloads/{chat_name}/{file_name}"
-
-                tasks.append(self.safe_download(message, path, progress, task))
-
-            await asyncio.gather(*tasks)
+            await self.download_media_list(media_messages, chat_name, progress, task)
 
     async def download_media_comments(self, chat_id):
         """Скачивание медиафайлов из комментариев"""
@@ -105,23 +115,18 @@ class Downloader:
             for msg_id in messages_id:
                 msg = await self.app.get_messages(chat_id, msg_id)
 
-                progress.update(task_main, advance=1, description=msg.text)
+                progress.update(task_main, advance=1, description=msg.text[:50])
 
                 text = safe_path_text(msg.text)
                 date = msg.date.strftime("%d.%m.%y")
                 folder = f"{text}_{date}"
                 
                 media_messages = []
-                i = 0
                 
                 # Собираем медифайлы из поста
                 async for reply in self.app.get_discussion_replies(chat_id, msg_id):
-                    i += 1
-
-                    file_name = get_media_filename(reply, i)
-                    if file_name:
-                        path = f"./downloads/{folder}/{file_name}"
-                        media_messages.append((reply, path))                    
+                    if reply.media:
+                        media_messages.append(reply)                    
 
                 total_files = len(media_messages)
 
@@ -129,12 +134,7 @@ class Downloader:
                 if total_files > 0:
                     task_files = progress.add_task("Скачиваем медиафайлы", total=total_files)
                     
-                    tasks = [
-                        self.safe_download(reply, path, progress, task_files)
-                        for reply, path in media_messages
-                    ]
-
-                    await asyncio.gather(*tasks)
+                    await self.download_media_list(media_messages, folder, progress, task_files)
 
                     progress.remove_task(task_files)
 

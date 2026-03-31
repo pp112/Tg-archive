@@ -3,6 +3,7 @@ import re
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.console import Console
 from pyrogram.enums import MessageMediaType
+from pyrogram.types import Message
 
 console = Console()
 
@@ -18,15 +19,15 @@ def get_progress():
         TextColumn("[bright_green]{task.percentage:>3.0f}%[/bright_green]")
     )
 
-def complete_msg(msg):
+def complete_msg(msg: str):
     console.print(f"[bold green]✔ {msg}[/bold green]")
 
 def safe_path_text(text: str) -> str:
     """Убирает недопустимые символы для путей"""
     return re.sub(r'[\\/:*?"<>|]', '_', text).strip()
 
-def get_media_filename(message, name):
-    if message.media not in ALLOWED_MEDIA:
+def get_media_filename(message: Message, name):
+    if not message.media:
         return None
 
     if message.media == MessageMediaType.PHOTO:
