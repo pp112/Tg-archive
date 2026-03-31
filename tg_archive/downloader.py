@@ -18,13 +18,18 @@ class Downloader:
         self.api_id = os.getenv("API_ID")
         self.api_hash = os.getenv("API_HASH")
 
-        self.proxy = {
-            "scheme": os.getenv("PROXY_SCHEME"),
-            "hostname": os.getenv("PROXY_HOST"),
-            "port": int(os.getenv("PROXY_PORT")),
-            "username": os.getenv("PROXY_USER") or None,
-            "password": os.getenv("PROXY_PASS") or None,
-        }
+        use_proxy = os.getenv("USE_PROXY").lower() == "true"
+        
+        if use_proxy:
+            self.proxy = {
+                "scheme": os.getenv("PROXY_SCHEME"),
+                "hostname": os.getenv("PROXY_HOST"),
+                "port": int(os.getenv("PROXY_PORT")),
+                "username": os.getenv("PROXY_USER") or None,
+                "password": os.getenv("PROXY_PASS") or None,
+            }
+        else:
+            self.proxy = None
 
         self.dialog_target = os.getenv("DIALOG_TARGET")
         self.from_comments = os.getenv("FROM_COMMENTS").lower() == "true"
