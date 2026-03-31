@@ -21,10 +21,11 @@ def get_progress():
 def complete_msg(msg):
     console.print(f"[bold green]✔ {msg}[/bold green]")
 
-def safe_filename(text: str) -> str:
+def safe_path_text(text: str) -> str:
+    """Убирает недопустимые символы для путей"""
     return re.sub(r'[^\w\-_\. ]', '_', text).strip("_")
 
-def get_media_filename(message, index: int):
+def get_media_filename(message, name):
     if message.media not in ALLOWED_MEDIA:
         return None
 
@@ -33,4 +34,4 @@ def get_media_filename(message, index: int):
     elif message.media == MessageMediaType.VIDEO:
         ext = "mp4"
 
-    return f"{index}.{ext}"
+    return f"{name}.{ext}"
