@@ -35,7 +35,7 @@ PROXY_PASS=qwerty123
 DIALOG_TARGET="Chat_name"
 FROM_COMMENTS=true
 ```
-
+---
 
 ### 🔑 Получение API_ID и API_HASH
 
