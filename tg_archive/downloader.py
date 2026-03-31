@@ -3,6 +3,7 @@ import asyncio
 
 from pyrogram import Client
 from pyrogram.types import Message
+from pyrogram.enums import ChatType
 from pyrogram.errors import FloodWait
 from rich.progress import Progress, TaskID
 from dotenv import load_dotenv
@@ -63,7 +64,7 @@ class Downloader:
     async def download_media_chat(self, chat_id):
         """Скачивание медиафайлов из обычного чата"""
         chat = await self.app.get_chat(chat_id)
-        chat_name = safe_path_text(chat.title)
+        chat_name = safe_path_text(chat.title or chat.first_name)
 
         media_messages = []
         i = 0
@@ -79,7 +80,8 @@ class Downloader:
         progress = get_progress()
 
         with progress:
-            task = progress.add_task("Скачиваем медиафайлы", total=total_files)
+            task_text = f"Скачиваем медиафайлы из '{self.dialog_target}'"
+            task = progress.add_task(task_text, total=total_files)
 
             tasks = []
 
@@ -136,6 +138,11 @@ class Downloader:
 
                     progress.remove_task(task_files)
 
+    async def is_private_chat(self, chat_id):
+        """Проверяет, является ли чат личным"""
+        chat = await self.app.get_chat(chat_id)
+        return chat.type == ChatType.PRIVATE
+
     async def run(self):
         """Запуск"""
         async with self.app:
@@ -144,10 +151,12 @@ class Downloader:
 
             complete_msg("Чат найден")
 
-            if self.from_comments:
-                await self.download_media_comments(chat_id)
-            else:
+            is_private = await self.is_private_chat(chat_id)
+
+            if is_private or not self.from_comments:
                 await self.download_media_chat(chat_id)
+            else:
+                await self.download_media_comments(chat_id)
 
             print()
             complete_msg("Все медиафайлы успешно скачаны!")

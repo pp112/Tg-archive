@@ -23,7 +23,7 @@ def complete_msg(msg):
 
 def safe_path_text(text: str) -> str:
     """Убирает недопустимые символы для путей"""
-    return re.sub(r'[^\w\-_\. ]', '_', text).strip("_")
+    return re.sub(r'[\\/:*?"<>|]', '_', text).strip()
 
 def get_media_filename(message, name):
     if message.media not in ALLOWED_MEDIA:
