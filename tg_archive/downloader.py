@@ -9,7 +9,7 @@ from rich.progress import Progress, TaskID
 from dotenv import load_dotenv
 
 from tg_archive.utils import console
-from tg_archive.utils import get_progress, complete_msg, safe_path_text, get_media_filename
+from tg_archive.utils import get_progress, complete_msg, safe_path_text, get_media_filename, is_media_file
 
 load_dotenv()
 
@@ -78,11 +78,12 @@ class Downloader:
 
         for i, message in enumerate(messages, 1):
             file_name = get_media_filename(message, i)
+            path = f"./downloads/{folder}/{file_name}"
+            if os.path.isfile(path):
+                progress.update(task, advance=1)
+                continue
 
-            if file_name:
-                path = f"./downloads/{folder}/{file_name}"
-
-                tasks.append(self.safe_download(message, path, progress, task))
+            tasks.append(self.safe_download(message, path, progress, task))
 
         await asyncio.gather(*tasks)
 
@@ -94,7 +95,7 @@ class Downloader:
         media_messages = []
 
         async for message in self.app.get_chat_history(chat_id):
-            if message.media:
+            if is_media_file(message):
                 media_messages.append(message)
 
         total_files = len(media_messages)
@@ -130,8 +131,8 @@ class Downloader:
                 
                 # Собираем медифайлы из поста
                 async for reply in self.app.get_discussion_replies(chat_id, msg_id):
-                    if reply.media:
-                        media_messages.append(reply)                    
+                    if is_media_file(reply):
+                        media_messages.append(reply)
 
                 total_files = len(media_messages)
 
