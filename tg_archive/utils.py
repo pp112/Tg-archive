@@ -7,8 +7,6 @@ from pyrogram.types import Message
 
 console = Console()
 
-ALLOWED_MEDIA = {MessageMediaType.PHOTO, MessageMediaType.VIDEO}
-
 
 def get_progress():
     return Progress(
@@ -27,12 +25,10 @@ def safe_path_text(text: str) -> str:
     return re.sub(r'[\\/:*?"<>|]', '_', text).strip()
 
 def get_media_filename(message: Message, name):
-    if not message.media:
-        return None
-
     if message.media == MessageMediaType.PHOTO:
-        ext = "jpg"
+        return f"{name}.jpg"
     elif message.media == MessageMediaType.VIDEO:
-        ext = "mp4"
-
-    return f"{name}.{ext}"
+        return f"{name}.mp4"
+    else:
+        return None
+    
