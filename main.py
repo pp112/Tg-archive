@@ -1,5 +1,5 @@
 import asyncio
-from tg_archive.downloader import Downloader
+from tg_comments_archive.downloader import Downloader
 
 def main():
     downloader = Downloader()

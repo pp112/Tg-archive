@@ -1,8 +1,9 @@
 services:
-  tg_archive:
+  tg_comments_archive:
     build: .
-    image: tg_archive
-    container_name: tg_archive
+    image: tg_comments_archive
+    container_name: tg_comments_archive
+    network_mode: "host"
     tty: true
     stdin_open: true
     env_file:

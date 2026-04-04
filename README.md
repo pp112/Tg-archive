@@ -1,16 +1,6 @@
-# 📦 Telegram Media Archive
+# 📦 Telegram Media Comments Downloader
 
-Скрипт для скачивания медиафайлов (фото, видео) из чатов Telegram. Поддерживает загрузку из обычных сообщений и из комментариев к постам (для групп и каналов).
-
----
-
-## 🛠 Технологии
-
-- **Python 3.12**
-- **Pyrogram** — работа с Telegram API
-- **asyncio** — асинхронность
-- **Rich** — вывод и прогресс-бары
-- **Docker** — контейнеризация
+### Скрипт для скачивания медиафайлов (фото, видео) из комментариев к постам в Telegram.
 
 ---
 
@@ -26,6 +16,7 @@
 API_ID=123456
 API_HASH=abcdef123456
 
+USE_PROXY=true
 PROXY_SCHEME=http
 PROXY_HOST=123.456.789.123
 PROXY_PORT=8000
@@ -33,7 +24,6 @@ PROXY_USER=qwerty
 PROXY_PASS=qwerty123
 
 DIALOG_TARGET="Chat_name"
-FROM_COMMENTS=true
 ```
 ---
 
@@ -59,7 +49,7 @@ FROM_COMMENTS=true
 Если вам нужен прокси:
 
 ```env
-USE_PROXY=true
+USE_PROXY=false
 PROXY_SCHEME=http      # или socks5
 PROXY_HOST=IP_АДРЕС
 PROXY_PORT=ПОРТ
@@ -83,20 +73,6 @@ DIALOG_TARGET="Chat_name"
 
 ---
 
-### 📥 Режим загрузки
-
-```env
-FROM_COMMENTS=true
-```
-
-- `true` → скачивание из **комментариев к постам**
-- `false` → скачивание из **обычных сообщений**
-
-- Если чат — **личный (private)**:
-  - значение `FROM_COMMENTS` **игнорируется**
-
----
-
 ## 🐳 Запуск
 
 ### 1. Сборка контейнера
@@ -108,7 +84,7 @@ docker compose build
 ### 2. Запуск
 
 ```bash
-docker compose run --rm tg_archive
+docker compose run --rm tg_comments_archive
 ```
 
 ---

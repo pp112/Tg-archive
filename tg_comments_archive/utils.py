@@ -1,7 +1,7 @@
 import re
 
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from pyrogram.enums import MessageMediaType
 from pyrogram.types import Message
 
