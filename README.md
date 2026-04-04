@@ -49,7 +49,7 @@ DIALOG_TARGET="Chat_name"
 Если вам нужен прокси:
 
 ```env
-USE_PROXY=false
+USE_PROXY=true
 PROXY_SCHEME=http      # или socks5
 PROXY_HOST=IP_АДРЕС
 PROXY_PORT=ПОРТ
